@@ -29,7 +29,7 @@ export function avatar(person) {
     bob: '<path d="M9 18c0-13 22-13 22 0l1 11-6 2H13l-5-3z"/><path d="M11 17c0-10 17-11 19 0-6 1-10-2-12-5-1 3-4 5-7 5z"/>',
     swept: '<path d="M10 19c-3-9 5-15 12-13 5-1 9 4 8 11-6-4-10-1-15-5l-3 8z"/>',
     bun: '<circle cx="23" cy="7" r="6"/><path d="M10 18c-1-12 22-15 21 1-4-1-7-3-9-6-2 3-6 5-12 5z"/>',
-    glasses: '<path d="M10 17c0-12 20-12 20 0l-4-1-5-4-6 4z"/><path d="M12 19h6v4h-5zm10 0h6l-1 4h-5zm-4 1h4" fill="none" stroke="var(--cp-text)" stroke-width="1.1"/>',
+    glasses: '<path d="M10 17c0-12 20-12 20 0l-4-1-5-4-6 4z"/><path d="M12 19h6v4h-5zm10 0h6l-1 4h-5zm-4 1h4" fill="none" stroke="var(--cp-ink)" stroke-width="1.1"/>',
   }[person.look];
   return `<svg class="avatar tone-${person.tone}" viewBox="0 0 40 40" aria-hidden="true">
     <circle cx="20" cy="20" r="20" class="avatar-bg"/><path d="M4 36c3-6 9-9 16-9s13 3 16 9a20 20 0 0 1-32 0" class="avatar-shirt"/>
@@ -47,10 +47,10 @@ const line = (points, pen, extra = '') => `<polyline points="${points.map(point)
 const ellipse = (x, y, z, rx, ry, fill) => `<ellipse cx="${project([x, y, z])[0]}" cy="${project([x, y, z])[1]}" rx="${rx}" ry="${ry}" fill="${fill}"/>`;
 const rectangle = (x, y, w, d, z) => [[x, y, z], [x + w, y, z], [x + w, y + d, z], [x, y + d, z]];
 const flat = (x, y, w, d, z, fill, extra) => poly(rectangle(x, y, w, d, z), fill, extra);
-const ink = 'var(--cp-text)';
+const ink = 'var(--cp-ink)';
 const deskTop = 'var(--cp-office-wood)';
-const pale = 'var(--cp-bg-elevated)';
-const accent = 'var(--cp-accent)';
+const pale = 'var(--cp-office-wall)';
+const accent = 'var(--cp-cinnabar)';
 const seat = 'var(--cp-office-seat)';
 const edge = 'var(--cp-office-shade)';
 const shadow = 'var(--cp-office-shadow)';
@@ -154,7 +154,7 @@ export function office() {
   const floor = box(0, 0, 550, 377, 16, 'url(#floor-tile)', 'var(--cp-office-base)', -16);
   const rail = line([[0, 377, -5], [550, 377, -5], [550, 0, -5]], accent, 'stroke-width="1.5" opacity=".64"');
   const zones = positions.map(([x, y], i) => `<g class="office-zone" data-zone="${i}">
-    ${flat(x, y, 152, 138, .2, 'var(--cp-office-mat)', 'class="zone-mat"')}
+    ${flat(x, y, 152, 138, .2, 'currentColor', 'class="zone-mat"')}
     ${line([[x + 4, y + 135, 1], [x + 148, y + 135, 1], [x + 148, y + 5, 1]], edge, 'class="zone-edge"')}
     </g>`).join('');
   const aisles = line([[0, 188, 1], [550, 188, 1]], edge, 'stroke-dasharray="4 7" opacity=".65"') +

@@ -87,43 +87,42 @@
     </div>
   </header>
 
-  <main class="wrap">
-    <section class="hero" aria-labelledby="page-title">
-      <div>
-        <h1 id="page-title">Copilot, on the<br><em>office floor.</em></h1>
-        <p class="lede">Meet the Contoso team and learn GitHub Copilot by doing their work: compare models, review an agent’s changes, and decide what’s ready to ship.</p>
-      </div>
-      <aside class="passport" aria-labelledby="passport-title">
-        <span class="passport-icon" data-icon="passport" aria-hidden="true"></span>
-        <h2 id="passport-title">Campus progress</h2>
-        <p id="progress-text" aria-live="polite">0 of 6 rooms complete</p>
-        <div id="progress-segments" class="segments" aria-hidden="true"></div>
-        <p id="storage-status" class="storage-label"><span data-icon="lock" aria-hidden="true"></span> Progress is saved in this browser</p>
-      </aside>
-    </section>
-
+  <main>
     <section id="floor-plan" aria-labelledby="map-title">
       <div class="workshop">
         <div class="map-panel">
           <div class="map-head">
-            <h2 id="map-title">Explore the campus</h2>
-            <span class="map-count" aria-hidden="true"><span data-icon="layers"></span> 06 ROOMS</span>
+            <div>
+              <h1 id="map-title">Explore the campus</h1>
+              <p>Pick a room to meet the team and start a lab.</p>
+            </div>
+            <span class="map-count"><span data-icon="layers" aria-hidden="true"></span> 6 rooms</span>
           </div>
-          <div id="map" class="map">
-            <div id="office"></div>
-            <div id="map-labels" class="map-labels" aria-label="Select a room"></div>
+          <div class="map-viewport">
+            <div id="map" class="map">
+              <div id="office"></div>
+              <div id="map-labels" class="map-labels" role="group" aria-label="Select a room"></div>
+            </div>
           </div>
           <div class="map-foot">
-            <span><span class="key selected"></span> Selected room</span>
-            <span><span class="key complete"></span> Complete</span>
-            <span class="map-hint">Select a room to meet the team.</span>
+            <span><span class="key selected" aria-hidden="true"></span> Selected room</span>
+            <span><span class="key complete" data-icon="check" aria-hidden="true"></span> Complete</span>
           </div>
         </div>
-        <aside id="room-preview" class="room-preview" aria-labelledby="room-title"></aside>
+        <aside class="room-panel" aria-label="Room details and campus progress">
+          <div id="room-preview" class="room-preview"></div>
+          <div class="passport">
+            <span class="passport-icon" data-icon="passport" aria-hidden="true"></span>
+            <h2>Campus progress</h2>
+            <p id="progress-text" aria-live="polite">0 of 6 rooms complete</p>
+            <div id="progress-segments" class="segments" aria-hidden="true"></div>
+            <p id="storage-status" class="storage-label"><span data-icon="lock" aria-hidden="true"></span> Progress is saved in this browser</p>
+          </div>
+        </aside>
       </div>
     </section>
 
-    <section id="route" class="route" aria-labelledby="route-title">
+    <section id="route" class="wrap route" aria-labelledby="route-title">
       <div class="route-head">
         <div>
           <h2 id="route-title">Six rooms. One workshop.</h2>
@@ -133,7 +132,7 @@
       </div>
       <ol id="room-list" class="room-list"></ol>
     </section>
-    <noscript><p>This interactive workshop needs JavaScript. You can still <a href="https://github.com/tanure/contoso-copilot-advanced#-agenda-and-labs">read the original labs on GitHub</a>.</p></noscript>
+    <noscript><p class="wrap">This interactive workshop needs JavaScript. You can still <a href="https://github.com/tanure/contoso-copilot-advanced#-agenda-and-labs">read the original labs on GitHub</a>.</p></noscript>
   </main>
   <footer class="wrap site-footer"><strong>CONTOSO ENGINEERING</strong><span>Fictional workshop · Synthetic data only</span><a data-repo-link href="https://github.com/tanure/contoso-copilot-advanced">Source on GitHub <span data-icon="external" aria-hidden="true"></span></a></footer>
 
