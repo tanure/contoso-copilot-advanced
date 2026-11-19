@@ -305,6 +305,7 @@ html:has(#reference[open]) { overflow: hidden; }
 .story-nav { display: flex; gap: 8px; margin-left: auto; }
 .mark-complete { display: inline-flex; align-items: center; gap: 8px; min-height: 44px; font-size: .9rem; font-weight: 650; cursor: pointer; background: var(--cp-ink); padding-inline: 8px; border-radius: .625rem; }
 .mark-complete input { accent-color: var(--cp-accent); width: 18px; height: 18px; margin: 0; }
+.mark-complete input:focus-visible { outline-color: var(--cp-canvas-text); }
 .debrief { display: grid; gap: 12px; }
 .debrief h2 { font-size: 1.55rem; }
 .room-stamp { justify-self: start; border: 1px solid currentColor; border-radius: 5px; padding: 4px 10px; color: var(--cp-accent); font: 700 .88rem var(--mono); }
