@@ -1,0 +1,161 @@
+<!doctype html>
+<!-- An illustrated workshop field guide: the floor plan carries navigation, and
+     each room opens a short conversation before revealing hands-on actions. -->
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta name="description" content="An illustrated, hands-on tour of the Contoso GitHub Copilot Advanced Workshop.">
+  <title>Copilot Lab Campus · Contoso</title>
+  <script>
+    (() => {
+      const param = new URLSearchParams(window.location.search).get("scoutTheme");
+      const theme =
+        param || (window.matchMedia("(prefers-color-scheme: dark)").matches ? "dark" : "light");
+      document.documentElement.setAttribute("data-theme", theme);
+    })();
+  </script>
+  <style>
+    :root {
+      color-scheme: light;
+      --cp-bg: #f7f4ef;
+      --cp-bg-elevated: #fcfbf8;
+      --cp-surface: #ffffff;
+      --cp-surface-soft: #f5f5f5;
+      --cp-border: #dedede;
+      --cp-border-strong: #919191;
+      --cp-text: #242424;
+      --cp-text-muted: #5c5c5c;
+      --cp-text-soft: #6f6f6f;
+      --cp-accent: #b11f4b;
+      --cp-accent-hover: #9a1a41;
+      --cp-accent-soft: rgba(177, 31, 75, 0.08);
+      --cp-accent-fg: #ffffff;
+      --cp-success: #16a34a;
+      --cp-danger: #dc2626;
+      --cp-warning: #f59e0b;
+      --cp-link: #0078d4;
+      --cp-shadow: 0 18px 48px rgba(0, 0, 0, 0.12);
+      --cp-overlay: rgba(255, 255, 255, 0.8);
+      --cp-panel: rgba(255, 255, 255, 0.86);
+      --cp-panel-strong: rgba(255, 255, 255, 0.96);
+      --cp-sheen: rgba(255, 255, 255, 0.55);
+      --cp-highlight: rgba(177, 31, 75, 0.12);
+    }
+    html[data-theme="dark"] {
+      color-scheme: dark;
+      --cp-bg: #3d3b3a;
+      --cp-bg-elevated: #343231;
+      --cp-surface: #292929;
+      --cp-surface-soft: #2e2e2e;
+      --cp-border: #474747;
+      --cp-border-strong: #5f5f5f;
+      --cp-text: #dedede;
+      --cp-text-muted: #919191;
+      --cp-text-soft: #b0b0b0;
+      --cp-accent: #fd8ea1;
+      --cp-accent-hover: #fb7b91;
+      --cp-accent-soft: rgba(253, 142, 161, 0.14);
+      --cp-accent-fg: #1a1a1a;
+      --cp-success: #4ade80;
+      --cp-danger: #f87171;
+      --cp-warning: #fbbf24;
+      --cp-link: #4da6ff;
+      --cp-shadow: 0 18px 48px rgba(0, 0, 0, 0.32);
+      --cp-overlay: rgba(41, 41, 41, 0.88);
+      --cp-panel: rgba(41, 41, 41, 0.72);
+      --cp-panel-strong: rgba(41, 41, 41, 0.96);
+      --cp-sheen: rgba(255, 255, 255, 0.04);
+      --cp-highlight: rgba(253, 142, 161, 0.12);
+    }
+  </style>
+  <link rel="icon" href="./campus.svg" type="image/svg+xml">
+  <link rel="stylesheet" href="./campus.css">
+  <script type="module" src="./campus.js"></script>
+</head>
+<body>
+  <a class="skip" href="#floor-plan">Skip to labs</a>
+  <header class="masthead">
+    <div class="wrap masthead-inner">
+      <a class="brand" href="./"><span class="brand-mark" data-icon="layers" aria-hidden="true"></span><span>Copilot Lab Campus<small>CONTOSO · ENGINEERING</small></span></a>
+      <nav aria-label="Campus navigation">
+        <a href="#floor-plan">Floor plan</a>
+        <a href="#route">Lab guide</a>
+        <button id="welcome-tour" type="button" class="nav-button">Welcome</button>
+        <a data-repo-link href="https://github.com/tanure/contoso-copilot-advanced">GitHub <span data-icon="external" aria-hidden="true"></span></a>
+      </nav>
+      <button id="theme" class="icon-button" type="button" aria-label="Switch color theme"></button>
+    </div>
+  </header>
+
+  <main>
+    <section id="floor-plan" aria-labelledby="map-title">
+      <div class="workshop">
+        <div class="map-panel">
+          <div class="map-head">
+            <div>
+              <h1 id="map-title">Explore the campus</h1>
+              <p>Pick a room to meet the team and start a lab.</p>
+            </div>
+            <span class="map-count"><span data-icon="layers" aria-hidden="true"></span> 6 rooms</span>
+          </div>
+          <div class="map-viewport">
+            <div id="map" class="map">
+              <div id="office"></div>
+              <div id="map-labels" class="map-labels" role="group" aria-label="Select a room"></div>
+            </div>
+          </div>
+          <div class="map-foot">
+            <span><span class="key selected" aria-hidden="true"></span> Selected room</span>
+            <span><span class="key complete" data-icon="check" aria-hidden="true"></span> Complete</span>
+          </div>
+        </div>
+        <aside class="room-panel" aria-label="Room details and campus progress">
+          <div id="room-preview" class="room-preview"></div>
+          <div class="passport">
+            <span class="passport-icon" data-icon="passport" aria-hidden="true"></span>
+            <h2>Campus progress</h2>
+            <p id="progress-text" aria-live="polite">0 of 6 rooms complete</p>
+            <div id="progress-segments" class="segments" aria-hidden="true"></div>
+            <p id="storage-status" class="storage-label"><span data-icon="lock" aria-hidden="true"></span> Progress is saved in this browser</p>
+          </div>
+        </aside>
+      </div>
+    </section>
+
+    <section id="story" aria-labelledby="story-title" hidden>
+      <div id="story-office" aria-hidden="true"></div>
+      <div class="story-stage">
+        <header class="story-head">
+          <div><p id="story-room" class="eyebrow"></p><h1 id="story-title" tabindex="-1"></h1></div>
+          <button id="exit-story" class="button stage-button" type="button"><span data-icon="back" aria-hidden="true"></span> Floor plan</button>
+        </header>
+        <div id="story-body" class="story-body"></div>
+        <footer id="story-footer" class="story-footer"></footer>
+      </div>
+      <div id="copy-toast" class="visually-hidden" role="status"></div>
+    </section>
+
+    <section id="route" class="wrap route" aria-labelledby="route-title">
+      <div class="route-head">
+        <div>
+          <h2 id="route-title">Six rooms. One workshop.</h2>
+          <p>Start at the Welcome Desk or jump to the lab your coach assigns.</p>
+        </div>
+        <a class="button secondary" data-cheat-link href="https://github.com/tanure/contoso-copilot-advanced/blob/main/labs/CHEATSHEET.md"><span data-icon="book" aria-hidden="true"></span> Workshop cheat sheet <span data-icon="external" aria-hidden="true"></span></a>
+      </div>
+      <ol id="room-list" class="room-list"></ol>
+    </section>
+    <noscript><p class="wrap">This interactive workshop needs JavaScript. You can still <a href="https://github.com/tanure/contoso-copilot-advanced#-agenda-and-labs">read the original labs on GitHub</a>.</p></noscript>
+  </main>
+  <footer class="wrap site-footer"><strong>CONTOSO ENGINEERING</strong><span>Fictional workshop · Synthetic data only</span><a data-repo-link href="https://github.com/tanure/contoso-copilot-advanced">Source on GitHub <span data-icon="external" aria-hidden="true"></span></a></footer>
+
+  <dialog id="reference" aria-labelledby="reference-title">
+    <header class="reference-head">
+      <h2 id="reference-title" tabindex="-1"></h2>
+      <form method="dialog"><button class="icon-button" aria-label="Close reference"><span data-icon="close" aria-hidden="true"></span></button></form>
+    </header>
+    <div id="reference-body" class="reference-body"></div>
+  </dialog>
+</body>
+</html>

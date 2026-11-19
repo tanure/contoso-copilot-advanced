@@ -1,0 +1,44 @@
+name: Publish Lab Campus
+
+on:
+  push:
+    branches: [main]
+    paths:
+      - 'campus/**'
+      - 'docs/images/**'
+      - '.github/workflows/pages.yml'
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+concurrency:
+  group: lab-campus-pages
+  cancel-in-progress: false
+
+jobs:
+  deploy:
+    # Template-created participant repositories should not deploy on push.
+    if: github.ref == 'refs/heads/main' && (github.repository == 'tanure/contoso-copilot-advanced' || github.event_name == 'workflow_dispatch')
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    permissions:
+      contents: read
+      pages: write
+      id-token: write
+    environment:
+      name: github-pages
+      url: ${{ steps.deployment.outputs.page_url }}
+    steps:
+      - uses: actions/checkout@v5
+      - uses: actions/configure-pages@v5
+      - name: Stage the campus and lab reference images
+        run: |
+          mkdir -p "$RUNNER_TEMP/campus/lab-images"
+          cp -R campus/. "$RUNNER_TEMP/campus/"
+          cp -R docs/images/. "$RUNNER_TEMP/campus/lab-images/"
+      - uses: actions/upload-pages-artifact@v3
+        with:
+          path: ${{ runner.temp }}/campus
+      - uses: actions/deploy-pages@v4
+        id: deployment
