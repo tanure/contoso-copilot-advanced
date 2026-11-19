@@ -25,7 +25,7 @@
 
 ## 🗺️ Agenda and labs
 
-**[Explore the Copilot Lab Campus](https://tanure.github.io/contoso-copilot-advanced/)** for the interactive version. Pick a room, follow the conversation, and complete the hands-on steps in your own workshop repository. Checkmarks stay in the browser you use; the Markdown guides below include all templates, troubleshooting, and stretch goals.
+**[Explore the Copilot Lab Campus](https://tanure.github.io/contoso-copilot-advanced/)** for the interactive version. Meet the team in the welcome scene, then pick a room and advance the conversation one speaker at a time. When it’s your turn, complete the tasks in your own workshop repository; step instructions and available screenshots open without leaving the scene. Checkmarks stay in your browser. The Markdown guides below include all templates, troubleshooting, and stretch goals.
 
 | # | Session | Level | Lab (do in this order) | You will build |
 |---|---|---|---|---|
@@ -100,6 +100,6 @@ infra/          Optional Azure Container Apps Bicep (not deployed in the worksho
 
 From the repository root, run `python -m http.server 8765 --bind 127.0.0.1 --directory campus` and open <http://127.0.0.1:8765/>. No npm install or pension API is needed. Edit the conversations and tasks in `campus/stories.js`; if you rename or reorder original lab steps, update `campus/guide-links.js` and run `node --test scripts/test-lab-campus.mjs`.
 
-To publish, set **Settings → Pages → Build and deployment → Source** to **GitHub Actions**. The **Publish Lab Campus** workflow deploys only `campus/` after a campus change reaches `main` in the upstream repository. You can also run the workflow manually on `main` after enabling Pages.
+To publish, set **Settings → Pages → Build and deployment → Source** to **GitHub Actions**. The **Publish Lab Campus** workflow deploys `campus/` and the workshop reference images in `docs/images/`. You can also run the workflow manually on `main` after enabling Pages.
 
 <sub>Fictional scenario and synthetic data. Contoso is a fictional company; not affiliated with any real pension fund or its systems. Scheme parameters are illustrative only.</sub>

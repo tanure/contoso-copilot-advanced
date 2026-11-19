@@ -142,7 +142,41 @@ export function marker(index) {
   return { x: px / floorSize[0] * 100, y: py / floorSize[1] * 100, label: quickNames[index] };
 }
 
-export function office() {
+export function portrait(person, speaker) {
+  const bobs = person.look === 'bob';
+  const bun = person.look === 'bun';
+  const glasses = person.look === 'glasses';
+  const hair = bobs
+    ? 'M73 105C68 65 88 34 119 27c43-10 77 13 81 53l5 95-28 15-24-18 25-66c-24-6-40-18-51-36-14 17-28 26-51 34Z'
+    : bun
+      ? 'M75 107C61 72 83 40 104 34c28-16 66-8 84 15 13 17 10 41 2 62l-16-16-3-18c-18 12-38 10-53-3-8 15-24 21-43 33Z'
+      : 'M73 105C66 84 66 66 81 53l-6-8 23-5 5-15 17 7c17-17 63-4 74 31 6 17 2 31-4 43l-14-14-3-22c-24 11-43 12-67 3l-13 25Z';
+  const palette = ['ocean', 'orange', 'ash', 'cinnabar', 'mocha'];
+  const coat = palette[[...speaker].reduce((n, c) => n + c.charCodeAt(0), 0) % palette.length];
+  return `<svg class="portrait tone-${person.tone}" style="--coat:var(--cp-${coat})" viewBox="0 0 270 275" aria-hidden="true" focusable="false">
+    <g class="portrait-outline" stroke-linecap="round" stroke-linejoin="round">
+      ${bun ? '<path class="portrait-hair" d="M140 40c-14-23 4-45 24-37 16 6 23 25 12 41Z"/>' : ''}
+      ${bobs ? '<path class="portrait-hair" d="M80 76h113l12 104-31 13H97l-26-17Z"/>' : ''}
+      <path class="portrait-coat" d="M19 275c3-37 16-67 42-78l51-19h47l49 19c27 11 42 39 44 78Z"/>
+      <path class="portrait-shadow" d="m31 275 14-50 24-25-10 75Zm208 0-13-50-24-25 10 75Z"/>
+      <path class="portrait-skin" d="M113 144v39l22 36 23-36v-41Z"/>
+      <path class="portrait-shadow" d="M113 152v20l43-3 2-23Z"/>
+      <path class="portrait-skin" d="M86 113c-14-14-22 0-15 15 4 9 10 12 16 8m98-23c14-14 22 0 15 15-4 9-10 12-16 8"/>
+      <path class="portrait-skin" d="M81 93c0-35 22-53 53-53s54 18 54 53l-4 33c-3 19-25 46-49 48-25-2-47-28-50-48Z"/>
+      <path class="portrait-hair" d="${hair}"/>
+      <path class="portrait-glint" d="M92 65c17-22 45-28 70-18"/>
+      <path class="portrait-ink-line" d="M97 105q11-6 22 0m31 0q11-6 22 0m-37 12-3 12 6 2m-13 16q10 6 21-1"/>
+      <path class="portrait-eye" d="M99 117q8-11 20-1-8 9-20 1Zm52-1q12-10 20 1-12 8-20-1Z"/>
+      <circle class="portrait-hair" cx="110" cy="116" r="3.5"/><circle class="portrait-hair" cx="161" cy="116" r="3.5"/>
+      ${glasses ? '<path class="portrait-glasses" d="M93 109h31v13q-2 8-11 8h-10q-10-1-10-10Zm53 0h31v11q0 10-10 10h-10q-9 0-11-8Zm-22 6q11-6 22 0"/>' : ''}
+      <path class="portrait-collar" d="m112 175 23 44-27-13-11 9-6-29Zm46 0-23 44 27-13 11 9 6-29Z"/>
+      <path class="portrait-ink-line" d="M135 219v56m-65-43-4 43m134-43 4 43"/>
+      <path class="portrait-collar" d="M169 228h25v17h-25z"/><path class="portrait-ink-line" d="M175 236h13"/>
+    </g>
+  </svg>`;
+}
+
+export function office(camera = null) {
   const decor = [
     (x, y) => couch(x + 13, y + 40) + box(x + 86, y + 31, 42, 28, 20) + plant(x + 122, y + 72) + person(x + 62, y + 91, accent),
     (x, y) => whiteboard(x + 76, y + 22) + workstation(x + 17, y + 49, true) + plant(x + 128, y + 68) + person(x + 95, y + 90),
@@ -151,7 +185,8 @@ export function office() {
     (x, y) => shelf(x + 12, y + 16) + shelf(x + 74, y + 16) + couch(x + 40, y + 58) + plant(x + 114, y + 65) + person(x + 27, y + 88, accent),
     (x, y) => whiteboard(x + 82, y + 18) + workstation(x + 18, y + 45, true) + plant(x + 125, y + 59) + person(x + 100, y + 87),
   ];
-  const floor = box(0, 0, 550, 377, 16, 'url(#floor-tile)', 'var(--cp-office-base)', -16);
+  const suffix = camera === null ? '' : '-scene';
+  const floor = box(0, 0, 550, 377, 16, `url(#floor-tile${suffix})`, 'var(--cp-office-base)', -16);
   const rail = line([[0, 377, -5], [550, 377, -5], [550, 0, -5]], accent, 'stroke-width="1.5" opacity=".64"');
   const zones = positions.map(([x, y], i) => `<g class="office-zone" data-zone="${i}">
     ${flat(x, y, 152, 138, .2, 'currentColor', 'class="zone-mat"')}
@@ -162,15 +197,18 @@ export function office() {
   const walls = box(2, 0, 546, 5, 41, pale, edge) + box(0, 5, 5, 368, 41, pale, edge) +
     [37, 96, 156, 217, 276, 335, 395, 454].map((x) => poly([
       [x, 5, 33], [x + 46, 5, 33], [x + 46, 5, 12], [x, 5, 12],
-    ], 'url(#window-glass)', `stroke="${deskTop}" stroke-width="1.5"`)).join('');
+    ], `url(#window-glass${suffix})`, `stroke="${deskTop}" stroke-width="1.5"`)).join('');
   const dividers = [185, 360].map((x) => [28, 219].map((y) =>
     box(x, y, 4, 84, 19, pale) + line([[x + 4, y, 17], [x + 4, y + 84, 17]], pale, 'opacity=".6"')).join('')).join('');
-  return `<svg viewBox="0 0 ${floorSize.join(' ')}" aria-hidden="true" focusable="false" class="office-art">
+  const [x, y] = positions[camera] ?? positions[0];
+  const [cx, cy] = project([x + 76, y + 67, 22]);
+  const view = camera === null ? `0 0 ${floorSize.join(' ')}` : `${cx - 200} ${cy - 113} 400 225`;
+  return `<svg viewBox="${view}" ${camera === null ? '' : 'preserveAspectRatio="xMidYMid slice"'} aria-hidden="true" focusable="false" class="office-art">
     <defs>
-      <pattern id="floor-tile" patternUnits="userSpaceOnUse" width="34" height="14" patternTransform="skewY(28)">
+      <pattern id="floor-tile${suffix}" patternUnits="userSpaceOnUse" width="34" height="14" patternTransform="skewY(28)">
         <rect width="34" height="14" fill="var(--cp-office-wood)"/><path d="M0 0h34M14 0v14" fill="none" stroke="${edge}" opacity=".28" stroke-width=".65"/>
       </pattern>
-      <linearGradient id="window-glass" x2="0" y2="1">
+      <linearGradient id="window-glass${suffix}" x2="0" y2="1">
         <stop stop-color="var(--cp-office-light)"/><stop offset="1" stop-color="${seat}"/>
       </linearGradient>
     </defs>

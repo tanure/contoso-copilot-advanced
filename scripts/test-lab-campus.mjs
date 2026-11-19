@@ -4,6 +4,7 @@ import { test } from 'node:test';
 import { stepAnchor } from '../campus/guide-links.js';
 import { parseLocation, restoreProgress, resumeAt, roomProgress, stepKey } from '../campus/progress.js';
 import { people, rooms } from '../campus/stories.js';
+import { onboarding, references } from '../campus/references.js';
 
 test('every story step maps to an original lab step, with a speaker and actionable content', async () => {
   for (const room of rooms) {
@@ -44,4 +45,17 @@ test('deep links distinguish a room, a known scene, and a debrief', () => {
   assert.deepEqual(parseLocation('#lab-a1/debrief', rooms), { room: rooms[1], scene: rooms[1].scenes.length });
   assert.deepEqual(parseLocation('#lab-a1/removed', rooms), { room: rooms[1], scene: null });
   assert.equal(parseLocation('#floor-plan', rooms), null);
+});
+
+test('scene reference assets exist in the source copied by the Pages workflow', async () => {
+  const sceneKeys = new Set(rooms.flatMap((room) => room.scenes.map((scene) => stepKey(room, scene))));
+  for (const [key, guide] of Object.entries(references)) {
+    assert.ok(sceneKeys.has(key), `Reference has no matching scene: ${key}`);
+    for (const [, path] of guide.images ?? []) {
+      assert.match(path, /^[\w/-]+\.(png|svg)$/);
+      assert.ok((await readFile(new URL(`../docs/images/${path}`, import.meta.url))).length, path);
+    }
+    for (const [, url] of guide.links ?? []) assert.equal(new URL(url).protocol, 'https:');
+  }
+  assert.ok(onboarding.every(([speaker, line]) => Object.hasOwn(people, speaker) && line));
 });

@@ -81,6 +81,7 @@
       <nav aria-label="Campus navigation">
         <a href="#floor-plan">Floor plan</a>
         <a href="#route">Lab guide</a>
+        <button id="welcome-tour" type="button" class="nav-button">Welcome</button>
         <a data-repo-link href="https://github.com/tanure/contoso-copilot-advanced">GitHub <span data-icon="external" aria-hidden="true"></span></a>
       </nav>
       <button id="theme" class="icon-button" type="button" aria-label="Switch color theme"></button>
@@ -122,6 +123,19 @@
       </div>
     </section>
 
+    <section id="story" aria-labelledby="story-title" hidden>
+      <div id="story-office" aria-hidden="true"></div>
+      <div class="story-stage">
+        <header class="story-head">
+          <div><p id="story-room" class="eyebrow"></p><h1 id="story-title" tabindex="-1"></h1></div>
+          <button id="exit-story" class="button stage-button" type="button"><span data-icon="back" aria-hidden="true"></span> Floor plan</button>
+        </header>
+        <div id="story-body" class="story-body"></div>
+        <footer id="story-footer" class="story-footer"></footer>
+      </div>
+      <div id="copy-toast" class="visually-hidden" role="status"></div>
+    </section>
+
     <section id="route" class="wrap route" aria-labelledby="route-title">
       <div class="route-head">
         <div>
@@ -136,14 +150,12 @@
   </main>
   <footer class="wrap site-footer"><strong>CONTOSO ENGINEERING</strong><span>Fictional workshop · Synthetic data only</span><a data-repo-link href="https://github.com/tanure/contoso-copilot-advanced">Source on GitHub <span data-icon="external" aria-hidden="true"></span></a></footer>
 
-  <dialog id="story" aria-labelledby="story-title">
-    <header class="story-head">
-      <div><p id="story-room" class="eyebrow"></p><h2 id="story-title" tabindex="-1"></h2></div>
-      <form method="dialog"><button class="icon-button" aria-label="Close conversation"><span data-icon="close" aria-hidden="true"></span></button></form>
+  <dialog id="reference" aria-labelledby="reference-title">
+    <header class="reference-head">
+      <h2 id="reference-title" tabindex="-1"></h2>
+      <form method="dialog"><button class="icon-button" aria-label="Close reference"><span data-icon="close" aria-hidden="true"></span></button></form>
     </header>
-    <div id="story-body" class="story-body"></div>
-    <footer id="story-footer" class="story-footer"></footer>
-    <div id="copy-toast" class="visually-hidden" role="status"></div>
+    <div id="reference-body" class="reference-body"></div>
   </dialog>
 </body>
 </html>
