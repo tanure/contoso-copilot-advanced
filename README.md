@@ -25,6 +25,8 @@
 
 ## 🗺️ Agenda and labs
 
+**[Explore the Copilot Lab Campus](https://tanure.github.io/contoso-copilot-advanced/)** for the interactive version. Pick a room, follow the conversation, and complete the hands-on steps in your own workshop repository. Checkmarks stay in the browser you use; the Markdown guides below include all templates, troubleshooting, and stretch goals.
+
 | # | Session | Level | Lab (do in this order) | You will build |
 |---|---|---|---|---|
 | 00 | Setup | — | [Lab 00 · Setup & orientation](labs/00-setup/README.md) | Running app, first Copilot chat, the 4 chat controls |
@@ -81,6 +83,7 @@ npm test
 ```
 api/            Node 24 TypeScript API (domain · repositories · services · routes) + tests
 web/            Static UI (no build step)
+campus/         GitHub Pages workshop guide (separate from the pension app)
 mcp/            pension-rules MCP server (hand-written stdio JSON-RPC) + tests
 data/seed/      Synthetic members, employers, contributions, service requests
 docs/           Architecture, business rules, ADRs, backlog, images
@@ -92,4 +95,11 @@ infra/          Optional Azure Container Apps Bicep (not deployed in the worksho
 ```
 
 ---
+
+### Preview or publish the campus
+
+From the repository root, run `python -m http.server 8765 --bind 127.0.0.1 --directory campus` and open <http://127.0.0.1:8765/>. No npm install or pension API is needed. Edit the conversations and tasks in `campus/stories.js`; if you rename or reorder original lab steps, update `campus/guide-links.js` and run `node --test scripts/test-lab-campus.mjs`.
+
+To publish, set **Settings → Pages → Build and deployment → Source** to **GitHub Actions**. The **Publish Lab Campus** workflow deploys only `campus/` after a campus change reaches `main` in the upstream repository. You can also run the workflow manually on `main` after enabling Pages.
+
 <sub>Fictional scenario and synthetic data. Contoso is a fictional company; not affiliated with any real pension fund or its systems. Scheme parameters are illustrative only.</sub>
