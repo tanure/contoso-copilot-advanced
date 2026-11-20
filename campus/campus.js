@@ -14,6 +14,7 @@ const reference = $('#reference');
 const preview = $('#room-preview');
 const repo = 'https://github.com/tanure/contoso-copilot-advanced';
 const source = (room, index) => `${repo}/blob/main/labs/${room.slug}/README.md${index === undefined ? '' : `#${encodeURIComponent(stepAnchor(room.id, index))}`}`;
+const roomGuides = new Map();
 const workshopChoices = {
   '00/first-chat': {
     question: 'Copilot asks to edit a file while explaining the code. What do you do?',
@@ -96,8 +97,10 @@ function persist() {
   try {
     localStorage.setItem(progressKey, JSON.stringify([...completed]));
     $('#storage-status').innerHTML = `${icon('lock')} Progress is saved in this browser`;
+    return true;
   } catch {
     storageNotice('Could not save your checkmarks. Progress is kept until you leave this page.');
+    return false;
   }
 }
 
@@ -282,8 +285,14 @@ function renderDecision(choice) {
 }
 
 function renderScene(scene, room, state) {
-  const choice = workshopChoices[stepKey(room, scene)];
-  const guide = references[stepKey(room, scene)] ?? {};
+  const key = stepKey(room, scene);
+  const choice = workshopChoices[key];
+  const guide = references[key] ?? {};
+  const [speaker] = scene.dialogue.at(-1);
+  const person = people[speaker];
+  const done = completed.has(key);
+  const last = sceneIndex === room.scenes.length - 1;
+  const index = sceneIndex;
   body.innerHTML = `
     <div class="scene-picker">
       <label>Jump to a step
@@ -294,88 +303,115 @@ function renderScene(scene, room, state) {
       <span class="count">${state.done}/${room.scenes.length} done</span>
     </div>
     <section class="mission">
-      <h2 tabindex="-1" id="mission-title">Your turn</h2>
-      ${choice ? renderDecision(choice) : ''}
-      <ol class="task-list">${scene.tasks.map((task) => `<li>${escape(task)}</li>`).join('')}</ol>
-      ${scene.snippets.map((snippet, index) => `
-        <div class="snippet"><div class="snippet-head"><span>${escape(snippet.label)}</span>
-        <button class="button secondary" type="button" data-copy="${index}">${icon('copy')} Copy</button></div>
-        <pre><code>${escape(snippet.text)}</code></pre></div>`).join('')}
-      <p class="evidence"><strong>Checkpoint:</strong> ${escape(scene.evidence)}</p>
-      <div class="reference-actions">
-        <button id="open-instructions" class="button secondary" type="button" aria-haspopup="dialog">${icon('book')} Step ${sceneIndex + 1} instructions</button>
-        ${(guide.images ?? []).map(([label], index) => `<button class="button secondary" type="button" aria-haspopup="dialog" data-image="${index}">${escape(label)}</button>`).join('')}
+      <div class="mission-head">
+        <h2 tabindex="-1" id="mission-title">Your turn</h2>
+        <a class="source-link" href="${source(room, index)}" target="_blank" rel="noopener">Original lab on GitHub ${icon('external')}</a>
       </div>
-      ${externalLinks(guide.links)}
-      <a class="source-link" href="${source(room, sceneIndex)}" target="_blank" rel="noopener">Original lab on GitHub ${icon('external')}</a>
+      ${choice ? renderDecision(choice) : ''}
+      ${guide.links?.length ? `<div class="reference-actions">${guide.links.map(([label, url]) =>
+        `<a class="button secondary" href="${escape(url)}" target="_blank" rel="noopener">${escape(label)} ${icon('external')}</a>`).join('')}</div>` : ''}
+      <div id="step-guide" class="guide-content"></div>
+      ${guide.notes?.length || guide.images?.length ? `<details class="crew-notes">
+        <summary>Tips from the crew</summary>
+        ${(guide.notes ?? []).map((note) => `<p>${escape(note)}</p>`).join('')}
+        ${(guide.images ?? []).map(([label, path]) => `<button class="button secondary" type="button" aria-haspopup="dialog" data-guide-image="${escape(path)}">${escape(label)}</button>`).join('')}
+      </details>` : ''}
     </section>`;
   footer.innerHTML = `
-    <label class="mark-complete"><input id="step-done" type="checkbox"${completed.has(stepKey(room, scene)) ? ' checked' : ''}> Mark step done</label>
-    <div class="story-nav">${roomSwitcher('Replay conversation')}${roomSwitcher(sceneIndex === room.scenes.length - 1 ? 'Debrief' : 'Next step', true)}</div>`;
-  $('#previous-scene').addEventListener('click', () => showScene(sceneIndex));
-  $('#next-scene').addEventListener('click', () => showScene(sceneIndex + 1));
-  $('#open-instructions').addEventListener('click', () => showReference(scene.title, `
-    <ol class="task-list">${scene.tasks.map((task) => `<li>${escape(task)}</li>`).join('')}</ol>
-    ${(guide.notes ?? []).map((note) => `<p>${escape(note)}</p>`).join('')}
-    <p class="evidence"><strong>Checkpoint:</strong> ${escape(scene.evidence)}</p>
-    ${externalLinks(guide.links)}
-    <a class="source-link" href="${source(room, sceneIndex)}" target="_blank" rel="noopener">Full original lab step ${icon('external')}</a>`));
-  body.querySelectorAll('[data-image]').forEach((button) => {
-    button.addEventListener('click', () => {
-      const [label, path] = guide.images[Number(button.dataset.image)];
-      const original = `https://raw.githubusercontent.com/tanure/contoso-copilot-advanced/main/docs/images/${path}`;
-      showReference(label, `<img class="lab-image" alt="${escape(label)}" src="${escape(guideImage(path))}">
-        <p><a class="source-link" href="${original}" target="_blank" rel="noopener">Open full-size image ${icon('external')}</a></p>`);
-      const image = reference.querySelector('.lab-image');
-      image.addEventListener('error', () => {
-        if (image.dataset.fallback) {
-          const message = document.createElement('p');
-          message.textContent = 'The image couldn’t load. Try the full-size link below.';
-          image.replaceWith(message);
-        } else {
-          image.dataset.fallback = 'true';
-          image.src = original;
-        }
-      });
-    });
+    <div class="task-companion">
+      ${avatar(person)}
+      <div class="companion-line">
+        <p><strong>${escape(person.name)}</strong> <span>${done ? 'Step complete' : 'Checkpoint'}</span></p>
+        <p>${escape(scene.evidence)}</p>
+      </div>
+    </div>
+    <div class="story-nav">
+      <button id="previous-scene" class="replay-link" type="button">Replay conversation</button>
+      ${done ? '<button id="step-undo" class="replay-link" type="button">Mark not done</button>' : ''}
+      ${roomSwitcher(done ? (last ? 'Go to debrief' : 'Continue story') : (last ? 'Mark done & debrief' : 'Mark done & continue'), true)}
+    </div>`;
+  $('#previous-scene').addEventListener('click', () => showScene(index));
+  $('#next-scene').addEventListener('click', () => {
+    let saved = true;
+    if (!completed.has(key)) {
+      completed.add(key);
+      saved = persist();
+      paintProgress();
+    }
+    showScene(index + 1);
+    if (!saved) toast.textContent = 'Step checked off for this visit. Browser storage is unavailable.';
+  });
+  $('#step-undo')?.addEventListener('click', () => {
+    completed.delete(key);
+    const saved = persist();
+    paintProgress();
+    $('#scene-picker').selectedOptions[0].textContent = `${index + 1}. ${scene.title}`;
+    body.querySelector('.count').textContent = `${roomProgress(room, completed).done}/${room.scenes.length} done`;
+    footer.querySelector('.companion-line span').textContent = 'Checkpoint';
+    const next = $('#next-scene');
+    next.innerHTML = `${last ? 'Mark done & debrief' : 'Mark done & continue'}${icon('arrow')}`;
+    next.focus();
+    $('#step-undo').remove();
+    toast.textContent = saved ? 'Step marked not done.' : 'Step unchecked for this visit. Browser storage is unavailable.';
   });
   $('#scene-picker').addEventListener('change', (event) => showScene(Number(event.target.value)));
-  $('#step-done').addEventListener('change', (event) => {
-    const key = stepKey(room, scene);
-    if (event.target.checked) completed.add(key);
-    else completed.delete(key);
-    persist();
-    paintProgress();
-    const count = roomProgress(room, completed).done;
-    body.querySelector('.count').textContent = `${count}/${room.scenes.length} done`;
-    $('#scene-picker').selectedOptions[0].textContent = `${sceneIndex + 1}. ${scene.title}${event.target.checked ? ' ✓' : ''}`;
-  });
-  body.querySelectorAll('[data-copy]').forEach((button) => {
-    button.addEventListener('click', () => copySnippet(button, scene.snippets[Number(button.dataset.copy)].text));
-  });
   body.querySelectorAll('[data-choice]').forEach((button) => {
     button.addEventListener('click', () => {
       body.querySelectorAll('[data-choice]').forEach((option) => option.setAttribute('aria-pressed', String(option === button)));
       body.querySelector('.decision-feedback').textContent = choice.options[Number(button.dataset.choice)][1];
     });
   });
+  loadGuide($('#step-guide'), room, scene);
 }
 
-function guideImage(path) {
-  return window.campusPreviewImages?.[path] ?? `./lab-images/${path}`;
+async function loadGuide(container, room, scene) {
+  container.innerHTML = '<p role="status">Loading step instructions…</p>';
+  try {
+    if (!roomGuides.has(room.id)) {
+      const response = await fetch(`./guides/${room.id}.json`);
+      if (!response.ok) throw new Error(`Guide request returned ${response.status}`);
+      roomGuides.set(room.id, await response.json());
+    }
+    const html = roomGuides.get(room.id)[scene.id];
+    if (typeof html !== 'string' || !html.trim()) throw new Error(`Missing guide for ${room.id}/${scene.id}`);
+    if (container.isConnected) container.innerHTML = html;
+  } catch (error) {
+    roomGuides.delete(room.id);
+    console.error('Could not load campus instructions.', error);
+    if (!container.isConnected) return;
+    container.innerHTML = `<p role="status">The full instructions couldn’t load. Try again or open the original lab on GitHub. Here’s the quick version.</p>
+      <button class="button secondary" type="button" id="retry-guide">Retry instructions</button>
+      <ol>${scene.tasks.map((task) => `<li>${escape(task)}</li>`).join('')}</ol>
+      ${scene.snippets.map(({ label, text }) => `<div class="snippet"><div class="snippet-head"><span>${escape(label)}</span>
+        <button class="button secondary" type="button" data-copy>Copy</button></div><pre><code>${escape(text)}</code></pre></div>`).join('')}`;
+    $('#retry-guide').addEventListener('click', () => {
+      $('#mission-title').focus({ preventScroll: true });
+      loadGuide(container, room, scene);
+    });
+  }
 }
 
-function externalLinks(links = []) {
-  return links.length ? `<ul class="reference-links">${links.map(([label, url]) =>
-    `<li><a class="source-link" href="${escape(url)}" target="_blank" rel="noopener">${escape(label)} ${icon('external')}</a></li>`).join('')}</ul>` : '';
-}
-
-function showReference(heading, content) {
+function showImage(label, path) {
+  const original = `https://raw.githubusercontent.com/tanure/contoso-copilot-advanced/main/docs/images/${path}`;
   const refTitle = $('#reference-title');
-  refTitle.textContent = heading;
-  $('#reference-body').innerHTML = content;
+  refTitle.textContent = label;
+  const refBody = $('#reference-body');
+  refBody.innerHTML = `<p><a class="source-link" href="${original}" target="_blank" rel="noopener">Open full-size image ${icon('external')}</a></p>`;
+  const image = new Image();
+  image.className = 'lab-image';
+  image.alt = label;
+  image.addEventListener('error', () => {
+    if (image.src !== original) image.src = original;
+    else {
+      const message = document.createElement('p');
+      message.textContent = 'The image couldn’t load. Try the full-size link below.';
+      image.replaceWith(message);
+    }
+  });
+  image.src = window.campusPreviewImages?.[path] ?? `./lab-images/${path}`;
+  refBody.prepend(image);
   reference.showModal();
-  refTitle.focus();
+  refTitle.focus({ preventScroll: true });
 }
 
 function showTask() {
@@ -383,6 +419,7 @@ function showTask() {
   renderScene(active.scenes[sceneIndex], active, roomProgress(active, completed));
   $('#mission-title').focus({ preventScroll: true });
   body.scrollTop = 0;
+  scrollTo(0, 0);
 }
 
 function renderDebrief(room, state) {
@@ -408,6 +445,7 @@ function renderDebrief(room, state) {
 }
 
 function showScene(index) {
+  if (reference.open) reference.close();
   sceneIndex = index;
   const step = active.scenes[index];
   const progress = roomProgress(active, completed);
@@ -420,6 +458,7 @@ function showScene(index) {
   else renderDebrief(active, progress);
   updateLocation(index);
   body.scrollTop = 0;
+  scrollTo(0, 0);
   title.focus({ preventScroll: true });
 }
 
@@ -451,6 +490,16 @@ async function copySnippet(button, text) {
   }
 }
 
+body.addEventListener('click', (event) => {
+  const button = event.target.closest('button');
+  if (button?.hasAttribute('data-copy')) {
+    copySnippet(button, button.closest('.snippet').querySelector('code').textContent);
+  } else if (button?.dataset.guideImage) {
+    const path = button.dataset.guideImage;
+    if (/^[\w/-]+\.(png|svg|jpe?g|gif|webp)$/i.test(path)) showImage(button.textContent.trim(), path);
+  }
+});
+
 document.querySelectorAll('[data-icon]').forEach((node) => { node.innerHTML = icon(node.dataset.icon); });
 $('#theme').addEventListener('click', () => {
   chosenTheme = document.documentElement.dataset.theme === 'dark' ? 'light' : 'dark';
@@ -481,6 +530,7 @@ document.querySelectorAll('a[href="#floor-plan"], a[href="#route"]').forEach((li
 });
 
 function followLocation() {
+  if (reference.open) reference.close();
   const target = parseLocation(location.hash, rooms);
   if (target?.scene != null) {
     openRoom(target.room, target.scene);

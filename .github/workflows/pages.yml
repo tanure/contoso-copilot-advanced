@@ -5,7 +5,9 @@ on:
     branches: [main]
     paths:
       - 'campus/**'
+      - 'labs/*/README.md'
       - 'docs/images/**'
+      - 'scripts/campus/**'
       - '.github/workflows/pages.yml'
   workflow_dispatch:
 
@@ -31,12 +33,14 @@ jobs:
       url: ${{ steps.deployment.outputs.page_url }}
     steps:
       - uses: actions/checkout@v5
+      - uses: actions/setup-node@v5
+        with:
+          node-version: 24
       - uses: actions/configure-pages@v5
-      - name: Stage the campus and lab reference images
+      - name: Build the campus with lab instructions and images
         run: |
-          mkdir -p "$RUNNER_TEMP/campus/lab-images"
-          cp -R campus/. "$RUNNER_TEMP/campus/"
-          cp -R docs/images/. "$RUNNER_TEMP/campus/lab-images/"
+          npm ci --prefix scripts/campus --ignore-scripts
+          node scripts/campus/build.mjs "$RUNNER_TEMP/campus"
       - uses: actions/upload-pages-artifact@v3
         with:
           path: ${{ runner.temp }}/campus
