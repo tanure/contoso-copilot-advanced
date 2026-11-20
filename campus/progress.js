@@ -17,6 +17,18 @@ export function roomProgress(room, completed) {
   return { done, complete: done === room.scenes.length };
 }
 
+export function campusProgress(rooms, completed) {
+  const progress = { steps: 0, totalSteps: 0, roomsCleared: 0, complete: false };
+  for (const room of rooms) {
+    const state = roomProgress(room, completed);
+    progress.steps += state.done;
+    progress.totalSteps += room.scenes.length;
+    progress.roomsCleared += Number(state.complete);
+  }
+  progress.complete = progress.totalSteps > 0 && progress.steps === progress.totalSteps;
+  return progress;
+}
+
 export function resumeAt(room, completed) {
   const first = room.scenes.findIndex((scene) => !completed.has(stepKey(room, scene)));
   return first === -1 ? room.scenes.length : first;

@@ -4,6 +4,15 @@ export const onboarding = [
   ['maya', 'Pick a room and follow the conversation one turn at a time. When it’s your turn, do the work in GitHub or VS Code, then check it off here. Use synthetic data only, and review what agents do before approving it.'],
 ];
 
+export const crewReview = {
+  '00': ['maya', 'Congratulations, teammate! You went from a new workspace to your first Copilot session. Keep manual approvals on when you want to see exactly what an agent is asking to do.'],
+  A1: ['theo', 'You compared models against a real result. Next time someone asks for the biggest model, try the smallest one that can meet the bar, and verify it on the task.'],
+  A2: ['nora', 'You gave each agent a clear job and kept a person in charge of the handoff. Keep that approval gate when a plan turns into real changes.'],
+  A3: ['iris', 'You saw why permission to call a tool isn’t permission to follow what it returns. Keep tool access narrow and check that your guardrails deny the right actions.'],
+  A4: ['mina', 'You tested whether better context actually improved the answer. Keep instructions short, scoped to where they apply, and backed by a check.'],
+  A5: ['alex', 'You followed the same verified artifact from build to promotion. Build once, check the digest, and leave the final release decision with a person. See you on the next release!'],
+};
+
 export const references = {
   '00/repo': {
     notes: [

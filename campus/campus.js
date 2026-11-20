@@ -1,8 +1,8 @@
 import { people, rooms } from './stories.js';
 import { avatar, icon, marker, office, portrait } from './illustration.js';
-import { parseLocation, progressKey, restoreProgress, resumeAt, roomProgress, stepKey } from './progress.js';
+import { campusProgress, parseLocation, progressKey, restoreProgress, resumeAt, roomProgress, stepKey } from './progress.js';
 import { stepAnchor } from './guide-links.js';
-import { onboarding, references } from './references.js';
+import { crewReview, onboarding, references } from './references.js';
 
 const $ = (selector) => document.querySelector(selector);
 const story = $('#story');
@@ -15,6 +15,7 @@ const preview = $('#room-preview');
 const repo = 'https://github.com/tanure/contoso-copilot-advanced';
 const source = (room, index) => `${repo}/blob/main/labs/${room.slug}/README.md${index === undefined ? '' : `#${encodeURIComponent(stepAnchor(room.id, index))}`}`;
 const roomGuides = new Map();
+const graduationHash = '#graduation';
 const workshopChoices = {
   '00/first-chat': {
     question: 'Copilot asks to edit a file while explaining the code. What do you do?',
@@ -156,10 +157,9 @@ function renderRoom() {
 }
 
 function paintProgress() {
-  let total = 0;
+  const progress = campusProgress(rooms, completed);
   const segments = rooms.map((room, index) => {
     const state = roomProgress(room, completed);
-    total += Number(state.complete);
     const mapButton = $(`[data-room="${room.id}"]`);
     mapButton.setAttribute('aria-pressed', String(active === room));
     mapButton.setAttribute('aria-label', `Lab ${room.id}: ${room.name}${state.complete ? ', complete' : ''}`);
@@ -171,9 +171,10 @@ function paintProgress() {
     route.setAttribute('aria-label', `Lab ${room.id}: ${room.name}, ${statusText(state).toLowerCase()}`);
     return `<span class="${state.complete ? 'filled' : ''}"></span>`;
   });
-  const text = `${total} of ${rooms.length} rooms complete`;
+  const text = `${progress.roomsCleared} of ${rooms.length} rooms complete`;
   if ($('#progress-text').textContent !== text) $('#progress-text').textContent = text;
   $('#progress-segments').innerHTML = segments.join('');
+  $('#open-graduation').hidden = !progress.complete;
   renderRoom();
 }
 
@@ -271,6 +272,7 @@ function startWelcome() {
   stageCamera(rooms[0]);
   story.dataset.mode = 'dialogue';
   $('#exit-story').innerHTML = `${icon('back')} Skip intro`;
+  $('#story-room').hidden = false;
   $('#story-room').textContent = 'Contoso Engineering';
   title.textContent = 'Welcome to Contoso';
   renderLine(onboarding);
@@ -293,6 +295,12 @@ function renderScene(scene, room, state) {
   const done = completed.has(key);
   const last = sceneIndex === room.scenes.length - 1;
   const index = sceneIndex;
+  function completionLabel() {
+    const progress = campusProgress(rooms, completed);
+    if (completed.has(key)) return last ? 'Go to debrief' : 'Continue story';
+    if (progress.steps + 1 === progress.totalSteps) return 'Mark done & graduate';
+    return last ? 'Mark done & debrief' : 'Mark done & continue';
+  }
   body.innerHTML = `
     <div class="scene-picker">
       <label>Jump to a step
@@ -328,17 +336,19 @@ function renderScene(scene, room, state) {
     <div class="story-nav">
       <button id="previous-scene" class="replay-link" type="button">Replay conversation</button>
       ${done ? '<button id="step-undo" class="replay-link" type="button">Mark not done</button>' : ''}
-      ${roomSwitcher(done ? (last ? 'Go to debrief' : 'Continue story') : (last ? 'Mark done & debrief' : 'Mark done & continue'), true)}
+      ${roomSwitcher(completionLabel(), true)}
     </div>`;
   $('#previous-scene').addEventListener('click', () => showScene(index));
   $('#next-scene').addEventListener('click', () => {
     let saved = true;
-    if (!completed.has(key)) {
+    const newlyDone = !completed.has(key);
+    if (newlyDone) {
       completed.add(key);
       saved = persist();
       paintProgress();
     }
-    showScene(index + 1);
+    if (newlyDone && campusProgress(rooms, completed).complete) showGraduation(true);
+    else showScene(index + 1);
     if (!saved) toast.textContent = 'Step checked off for this visit. Browser storage is unavailable.';
   });
   $('#step-undo')?.addEventListener('click', () => {
@@ -349,7 +359,7 @@ function renderScene(scene, room, state) {
     body.querySelector('.count').textContent = `${roomProgress(room, completed).done}/${room.scenes.length} done`;
     footer.querySelector('.companion-line span').textContent = 'Checkpoint';
     const next = $('#next-scene');
-    next.innerHTML = `${last ? 'Mark done & debrief' : 'Mark done & continue'}${icon('arrow')}`;
+    next.innerHTML = `${completionLabel()}${icon('arrow')}`;
     next.focus();
     $('#step-undo').remove();
     toast.textContent = saved ? 'Step marked not done.' : 'Step unchecked for this visit. Browser storage is unavailable.';
@@ -425,23 +435,89 @@ function showTask() {
 function renderDebrief(room, state) {
   const remaining = room.scenes.filter((item) => !completed.has(stepKey(room, item)));
   const next = rooms[rooms.indexOf(room) + 1];
-  const allDone = rooms.every((item) => roomProgress(item, completed).complete);
+  const allDone = campusProgress(rooms, completed).complete;
   body.innerHTML = `<section class="debrief">
     ${state.complete ? `<span class="room-stamp" aria-hidden="true">${icon('check')} ${room.id} CLEARED</span>` : ''}
     <h2>${state.complete ? 'Room complete' : `${state.done} of ${room.scenes.length} steps checked off`}</h2>
-    <p>${state.complete ? escape(allDone ? 'Every room is checked off. Your workshop pass is complete.' : 'You can revisit the conversation at any time.') : 'Go back to a step you haven’t checked off, or return to the floor plan and finish it later.'}</p>
+    <p>${state.complete ? (allDone ? 'You’ve finished every lab. The crew is waiting to celebrate with you.' : 'You can revisit the conversation at any time.') : 'Go back to a step you haven’t checked off, or return to the floor plan and finish it later.'}</p>
     ${remaining.length ? `<ul>${remaining.map((item) => `<li><button type="button" data-jump="${room.scenes.indexOf(item)}">${escape(item.title)}</button></li>`).join('')}</ul>` : ''}
     <a class="source-link" href="${source(room)}" target="_blank" rel="noopener">Original lab guide and optional stretch work ${icon('external')}</a>
   </section>`;
   footer.innerHTML = `${roomSwitcher('Back')}<div class="story-nav">
-    ${next && state.complete ? `<button class="button primary" id="next-room" type="button">Continue to ${next.id} ${icon('arrow')}</button>` :
+    ${allDone ? `<button class="button primary" id="debrief-graduation" type="button">View finale &amp; badge ${icon('arrow')}</button>` :
+    next && state.complete ? `<button class="button primary" id="next-room" type="button">Continue to ${next.id} ${icon('arrow')}</button>` :
     '<button id="finish-room" class="button primary" type="button">Return to the floor plan</button>'}</div>`;
   body.querySelectorAll('[data-jump]').forEach((button) => {
     button.addEventListener('click', () => showScene(Number(button.dataset.jump)));
   });
   $('#next-room')?.addEventListener('click', () => openRoom(next));
+  $('#debrief-graduation')?.addEventListener('click', () => showGraduation());
   $('#finish-room')?.addEventListener('click', () => closeStory());
   $('#previous-scene').addEventListener('click', () => showScene(sceneIndex - 1));
+}
+
+function showGraduation(celebrate = false) {
+  const progress = campusProgress(rooms, completed);
+  if (!progress.complete) return;
+  tour = false;
+  showStage();
+  stageCamera(rooms[0]);
+  story.dataset.mode = 'graduation';
+  $('#exit-story').innerHTML = `${icon('back')} Floor plan`;
+  $('#story-room').hidden = true;
+  title.textContent = 'Congratulations, teammate!';
+  toast.textContent = '';
+  body.innerHTML = `<div class="graduation${celebrate ? ' is-celebrating' : ''}">
+    <figure class="graduation-award">
+      <div class="badge-display">
+        <span class="badge-burst" aria-hidden="true">${'<i></i>'.repeat(6)}</span>
+        <img class="crew-badge" src="./contoso-copilot-crew.svg" alt="" width="360" height="360">
+      </div>
+      <figcaption>
+        <h2>Contoso Copilot Crew</h2>
+        <p>Workshop completion badge</p>
+        <a class="button stage-button" href="./contoso-copilot-crew.svg" download>Download badge ${icon('arrow')}</a>
+      </figcaption>
+    </figure>
+    <div class="graduation-recap">
+      <h2>Your workshop recap</h2>
+      <p>All ${progress.roomsCleared} labs cleared. ${progress.steps} steps checked off.</p>
+      <ul class="graduation-labs">${rooms.map((room) => `<li>${icon('check')}<span>${escape(room.topic)}</span></li>`).join('')}</ul>
+      <section class="crew-review" aria-labelledby="crew-review-title">
+        <h3 id="crew-review-title">From the crew</h3>
+        <div id="crew-review-line" aria-live="polite"></div>
+        <div class="crew-review-nav">
+          <span id="crew-review-count"></span>
+          <button type="button" class="button stage-button" id="crew-review-next">Next teammate ${icon('arrow')}</button>
+        </div>
+      </section>
+    </div>
+  </div>`;
+  footer.innerHTML = '';
+  let reviewIndex = 0;
+  function showReview() {
+    const room = rooms[reviewIndex];
+    const [speaker, line] = crewReview[room.id];
+    const person = people[speaker];
+    $('#crew-review-line').innerHTML = `<div class="task-companion">
+      ${avatar(person)}
+      <div class="companion-line">
+        <p><strong>${escape(person.name)}</strong> <span>${escape(room.name)}</span></p>
+        <p>${escape(line)}</p>
+      </div>
+    </div>`;
+    $('#crew-review-count').textContent = `${reviewIndex + 1} of ${rooms.length}`;
+    $('#crew-review-next').innerHTML = reviewIndex === rooms.length - 1
+      ? 'Replay crew review' : `Next teammate ${icon('arrow')}`;
+  }
+  $('#crew-review-next').addEventListener('click', () => {
+    reviewIndex = (reviewIndex + 1) % rooms.length;
+    showReview();
+  });
+  showReview();
+  if (location.hash !== graduationHash) history.replaceState(null, '', graduationHash);
+  scrollTo(0, 0);
+  title.focus({ preventScroll: true });
 }
 
 function showScene(index) {
@@ -450,6 +526,7 @@ function showScene(index) {
   const step = active.scenes[index];
   const progress = roomProgress(active, completed);
   title.textContent = step?.title ?? 'Room debrief';
+  $('#story-room').hidden = false;
   $('#story-room').textContent = `${active.id} · ${active.name} · ${step ? `STEP ${index + 1} OF ${active.scenes.length}` : 'DEBRIEF'}`;
   toast.textContent = '';
   story.dataset.mode = step ? 'dialogue' : 'debrief';
@@ -519,6 +596,10 @@ $('#room-list').addEventListener('click', (event) => {
   openRoom(rooms.find((room) => room.id === button.dataset.enter));
 });
 $('#exit-story').addEventListener('click', () => closeStory());
+$('#open-graduation').addEventListener('click', (event) => {
+  opener = event.currentTarget;
+  showGraduation(true);
+});
 $('#welcome-tour').addEventListener('click', (event) => {
   opener = event.currentTarget;
   startWelcome();
@@ -531,6 +612,19 @@ document.querySelectorAll('a[href="#floor-plan"], a[href="#route"]').forEach((li
 
 function followLocation() {
   if (reference.open) reference.close();
+  if (location.hash === graduationHash) {
+    if (campusProgress(rooms, completed).complete) {
+      active ??= rooms[0];
+      paintProgress();
+      showGraduation();
+    } else {
+      if (!story.hidden) closeStory(false);
+      selectRoom(rooms.find((room) => !roomProgress(room, completed).complete) ?? rooms[0]);
+      scrollTo(0, 0);
+      $('#enter-room').focus({ preventScroll: true });
+    }
+    return;
+  }
   const target = parseLocation(location.hash, rooms);
   if (target?.scene != null) {
     openRoom(target.room, target.scene);

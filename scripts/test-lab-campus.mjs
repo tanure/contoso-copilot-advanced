@@ -2,9 +2,9 @@ import assert from 'node:assert/strict';
 import { readFile } from 'node:fs/promises';
 import { test } from 'node:test';
 import { stepAnchor } from '../campus/guide-links.js';
-import { parseLocation, restoreProgress, resumeAt, roomProgress, stepKey } from '../campus/progress.js';
+import { campusProgress, parseLocation, restoreProgress, resumeAt, roomProgress, stepKey } from '../campus/progress.js';
 import { people, rooms } from '../campus/stories.js';
-import { onboarding, references } from '../campus/references.js';
+import { crewReview, onboarding, references } from '../campus/references.js';
 import { buildRoomGuide } from './campus/build.mjs';
 
 test('every story step maps to an original lab step, with a speaker and actionable content', async () => {
@@ -33,6 +33,29 @@ test('resume finds the earliest unchecked step, with a debrief only once a room 
   assert.equal(roomProgress(room, completed).complete, true);
   completed.delete(stepKey(room, room.scenes[0]));
   assert.equal(resumeAt(room, completed), 0);
+});
+
+test('graduation requires every step even when the last unchecked one is in an earlier lab', () => {
+  const steps = rooms.flatMap((room) => room.scenes.map((scene) => stepKey(room, scene)));
+  const [last, ...others] = steps;
+  const completed = new Set(others);
+  completed.add('unknown/ignored');
+  assert.deepEqual(campusProgress(rooms, completed), {
+    steps: steps.length - 1, totalSteps: steps.length, roomsCleared: rooms.length - 1, complete: false,
+  });
+  completed.add(last);
+  assert.deepEqual(campusProgress(rooms, completed), {
+    steps: steps.length, totalSteps: steps.length, roomsCleared: rooms.length, complete: true,
+  });
+  completed.delete(last);
+  assert.equal(campusProgress(rooms, completed).complete, false);
+});
+
+test('each cleared room has a closing review from someone in its cast', () => {
+  for (const room of rooms) {
+    const [speaker, line] = crewReview[room.id];
+    assert.ok(Object.hasOwn(people, speaker) && room.cast.includes(speaker) && line, room.id);
+  }
 });
 
 test('restoring progress ignores stale and duplicate keys and rejects corrupt data', () => {
