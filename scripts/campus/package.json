@@ -1,0 +1,8 @@
+{
+  "name": "contoso-campus-build",
+  "private": true,
+  "type": "module",
+  "devDependencies": {
+    "marked": "18.2.0"
+  }
+}

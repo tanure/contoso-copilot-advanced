@@ -30,7 +30,9 @@ jobs:
       - name: Unit and API tests
         run: npm test
       - name: Lab Campus content and progress tests
-        run: node --test scripts/test-lab-campus.mjs
+        run: |
+          npm ci --prefix scripts/campus --ignore-scripts
+          node --test scripts/test-lab-campus.mjs
       - name: Smoke test the running app
         run: |
           node api/src/server.ts & 

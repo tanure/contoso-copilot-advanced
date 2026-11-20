@@ -98,8 +98,18 @@ infra/          Optional Azure Container Apps Bicep (not deployed in the worksho
 
 ### Preview or publish the campus
 
-From the repository root, run `python -m http.server 8765 --bind 127.0.0.1 --directory campus` and open <http://127.0.0.1:8765/>. No npm install or pension API is needed. Edit the conversations and tasks in `campus/stories.js`; if you rename or reorder original lab steps, update `campus/guide-links.js` and run `node --test scripts/test-lab-campus.mjs`.
+From the repository root, build and serve the same static files used by Pages:
 
-To publish, set **Settings → Pages → Build and deployment → Source** to **GitHub Actions**. The **Publish Lab Campus** workflow deploys `campus/` and the workshop reference images in `docs/images/`. You can also run the workflow manually on `main` after enabling Pages.
+```sh
+npm ci --prefix scripts/campus --ignore-scripts
+node scripts/campus/build.mjs .campus-preview
+python -m http.server 8765 --bind 127.0.0.1 --directory .campus-preview
+```
+
+Open <http://127.0.0.1:8765/>. No pension API is needed. Edit conversations and checkpoints in `campus/stories.js`; the workbench instructions come from `labs/*/README.md`. After editing those files, rerun the build. If you rename or reorder lab steps, update `campus/guide-links.js` and run `node --test scripts/test-lab-campus.mjs`.
+
+The final unchecked step opens the graduation scene. After that, the crew recap and downloadable GitHub Copilot Advanced Workshop completion badge are available from the campus progress panel in the same browser.
+
+To publish, set **Settings → Pages → Build and deployment → Source** to **GitHub Actions**. The **Publish Lab Campus** workflow builds the site from `campus/`, the lab guides, and the reference images in `docs/images/`. You can also run the workflow manually on `main` after enabling Pages.
 
 <sub>Fictional scenario and synthetic data. Contoso is a fictional company; not affiliated with any real pension fund or its systems. Scheme parameters are illustrative only.</sub>

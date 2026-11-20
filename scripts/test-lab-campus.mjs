@@ -2,9 +2,10 @@ import assert from 'node:assert/strict';
 import { readFile } from 'node:fs/promises';
 import { test } from 'node:test';
 import { stepAnchor } from '../campus/guide-links.js';
-import { parseLocation, restoreProgress, resumeAt, roomProgress, stepKey } from '../campus/progress.js';
+import { campusProgress, parseLocation, restoreProgress, resumeAt, roomProgress, stepKey } from '../campus/progress.js';
 import { people, rooms } from '../campus/stories.js';
-import { onboarding, references } from '../campus/references.js';
+import { crewReview, onboarding, references } from '../campus/references.js';
+import { buildRoomGuide } from './campus/build.mjs';
 
 test('every story step maps to an original lab step, with a speaker and actionable content', async () => {
   for (const room of rooms) {
@@ -34,6 +35,29 @@ test('resume finds the earliest unchecked step, with a debrief only once a room 
   assert.equal(resumeAt(room, completed), 0);
 });
 
+test('graduation requires every step even when the last unchecked one is in an earlier lab', () => {
+  const steps = rooms.flatMap((room) => room.scenes.map((scene) => stepKey(room, scene)));
+  const [last, ...others] = steps;
+  const completed = new Set(others);
+  completed.add('unknown/ignored');
+  assert.deepEqual(campusProgress(rooms, completed), {
+    steps: steps.length - 1, totalSteps: steps.length, roomsCleared: rooms.length - 1, complete: false,
+  });
+  completed.add(last);
+  assert.deepEqual(campusProgress(rooms, completed), {
+    steps: steps.length, totalSteps: steps.length, roomsCleared: rooms.length, complete: true,
+  });
+  completed.delete(last);
+  assert.equal(campusProgress(rooms, completed).complete, false);
+});
+
+test('each cleared room has a closing review from someone in its cast', () => {
+  for (const room of rooms) {
+    const [speaker, line] = crewReview[room.id];
+    assert.ok(Object.hasOwn(people, speaker) && room.cast.includes(speaker) && line, room.id);
+  }
+});
+
 test('restoring progress ignores stale and duplicate keys and rejects corrupt data', () => {
   assert.deepEqual([...restoreProgress('["00/repo","00/repo","00/removed",null]', rooms)], ['00/repo']);
   assert.throws(() => restoreProgress('{', rooms), SyntaxError);
@@ -58,4 +82,44 @@ test('scene reference assets exist in the source copied by the Pages workflow', 
     for (const [, url] of guide.links ?? []) assert.equal(new URL(url).protocol, 'https:');
   }
   assert.ok(onboarding.every(([speaker, line]) => Object.hasOwn(people, speaker) && line));
+});
+
+test('workbench guides retain exact fences, headings, links and screenshots in their own steps', async () => {
+  const guides = {};
+  for (const room of rooms) {
+    const markdown = await readFile(new URL(`../labs/${room.slug}/README.md`, import.meta.url), 'utf8');
+    guides[room.id] = await buildRoomGuide(room, markdown);
+    assert.deepEqual(Object.keys(guides[room.id]), room.scenes.map(({ id }) => id));
+    assert.ok(Object.values(guides[room.id]).every((html) => html.trim()));
+  }
+  assert.match(guides['00'].repo, /<strong>Visibility:<\/strong> <strong>Private<\/strong>/);
+  assert.doesNotMatch(guides['00'].repo, /Open in VS Code Desktop/);
+  assert.match(guides['00'].codespace, /Open in VS Code Desktop/);
+  assert.match(guides['00'].controls, /data-guide-image="screenshots\/00-harness-picker\.png"/);
+  assert.match(guides['00'].controls, /<table>/);
+  assert.match(guides['00'].verify, /data-copy>Copy<\/button><\/div><pre><code>npm run verify<\/code>/);
+  assert.match(guides.A1.evaluate, /<pre><code>## Model selection scorecard|<pre><code># Model (?:selection )?(?:evaluation|comparison|scorecard)/i);
+  assert.match(guides.A2.branch, /href="https:\/\/github\.com\/tanure\/contoso-copilot-advanced\/blob\/main\/docs\/backlog\/BL-02-early-retirement\.md" target="_blank" rel="noopener"/);
+});
+
+test('workbench guide renderer treats raw HTML and non-web links as text', async () => {
+  const room = { ...rooms[0], scenes: [rooms[0].scenes[0]] };
+  const markdown = await readFile(new URL('../labs/00-setup/README.md', import.meta.url), 'utf8');
+  const heading = markdown.match(/^## Step 1 — .+$/m)[0];
+  const { repo } = await buildRoomGuide(room, `${heading}
+
+<img src="local.png">
+
+[unsafe](data:text/html,Hello)
+
+\`\`\`\`markdown
+## Step 2 — This is inside a template
+\`\`\`bash
+  echo "&"
+\`\`\`
+\`\`\`\`
+`);
+  assert.match(repo, /&lt;img src=&quot;local.png&quot;&gt;/);
+  assert.doesNotMatch(repo, /<img|href=/);
+  assert.match(repo, /<pre><code>## Step 2 — This is inside a template\n```bash\n  echo &quot;&amp;&quot;\n```<\/code>/);
 });

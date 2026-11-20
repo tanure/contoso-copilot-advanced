@@ -1,0 +1,28 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="360" height="360" viewBox="0 0 360 360" role="img" aria-labelledby="badge-title">
+  <title id="badge-title">GitHub Copilot Advanced Workshop — Completion Badge</title>
+  <defs>
+    <path id="edge" d="M180 18 305 88v133l-21 34-104 79-104-79-21-34V88Z"/>
+  </defs>
+  <use href="#edge" transform="translate(0 10)" fill="#2a201b" stroke="#2a201b" stroke-width="8" stroke-linejoin="round"/>
+  <use href="#edge" fill="#ffa400" stroke="#2a201b" stroke-width="8" stroke-linejoin="round"/>
+  <path d="M180 31 293 95v122l-18 29-95 73-95-73-18-29V95Z" fill="#ffe5ab"/>
+  <path d="M180 39 285 99v114l-17 27-88 68-88-68-17-27V99Z" fill="#173f51" stroke="#2a201b" stroke-width="3" stroke-linejoin="round"/>
+  <path d="M91 141v-32l89-51 89 51v32M91 197v13l14 21 75 58 75-58 14-21v-13" fill="none" stroke="#77b4cb" stroke-width="1.5" stroke-dasharray="3 5"/>
+  <g fill="#ffa400">
+    <path d="m105 143 3 8 8 3-8 3-3 8-3-8-8-3 8-3Z"/>
+    <path d="m255 143 3 8 8 3-8 3-3 8-3-8-8-3 8-3Z"/>
+    <path d="m180 262 4 9 10 4-10 4-4 9-4-9-10-4 10-4Z"/>
+  </g>
+  <g stroke="#ffe5ab" stroke-width="3" stroke-linejoin="round">
+    <path d="m139 140 41-24 41 24-41 24Z" fill="#2e86ab"/>
+    <path d="m139 124 41-24 41 24-41 24Z" fill="#77b4cb"/>
+    <path d="m139 108 41-24 41 24-41 24Z" fill="#ffe5ab"/>
+    <path d="m171 107 7 6 13-13" fill="none" stroke="#173f51" stroke-width="4" stroke-linecap="round"/>
+  </g>
+  <path d="M55 170h250v61H55z" fill="#ffa400" stroke="#2a201b" stroke-width="4" stroke-linejoin="round"/>
+  <g text-anchor="middle" font-family="Segoe UI, Arial, sans-serif" font-weight="700">
+    <text x="180" y="191" font-size="15" letter-spacing="2.2" fill="#2a201b">GITHUB COPILOT</text>
+    <text x="180" y="218" font-size="27" letter-spacing="1.1" fill="#2a201b">ADVANCED</text>
+    <text x="180" y="251" font-size="11" letter-spacing="1.6" fill="#ffe5ab">WORKSHOP COMPLETE</text>
+  </g>
+</svg>
