@@ -108,7 +108,7 @@ python -m http.server 8765 --bind 127.0.0.1 --directory .campus-preview
 
 Open <http://127.0.0.1:8765/>. No pension API is needed. Edit conversations and checkpoints in `campus/stories.js`; the workbench instructions come from `labs/*/README.md`. After editing those files, rerun the build. If you rename or reorder lab steps, update `campus/guide-links.js` and run `node --test scripts/test-lab-campus.mjs`.
 
-The final unchecked step opens the graduation scene. After that, the crew recap and downloadable badge are available from the campus progress panel in the same browser.
+The final unchecked step opens the graduation scene. After that, the crew recap and downloadable GitHub Copilot Advanced Workshop completion badge are available from the campus progress panel in the same browser.
 
 To publish, set **Settings → Pages → Build and deployment → Source** to **GitHub Actions**. The **Publish Lab Campus** workflow builds the site from `campus/`, the lab guides, and the reference images in `docs/images/`. You can also run the workflow manually on `main` after enabling Pages.
 

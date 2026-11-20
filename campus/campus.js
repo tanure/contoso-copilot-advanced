@@ -471,12 +471,12 @@ function showGraduation(celebrate = false) {
     <figure class="graduation-award">
       <div class="badge-display">
         <span class="badge-burst" aria-hidden="true">${'<i></i>'.repeat(6)}</span>
-        <img class="crew-badge" src="./contoso-copilot-crew.svg" alt="" width="360" height="360">
+        <img class="crew-badge" src="./github-copilot-advanced-badge.svg" alt="" width="360" height="360">
       </div>
       <figcaption>
-        <h2>Contoso Copilot Crew</h2>
+        <h2>GitHub Copilot Advanced Workshop</h2>
         <p>Workshop completion badge</p>
-        <a class="button stage-button" href="./contoso-copilot-crew.svg" download>Download badge ${icon('arrow')}</a>
+        <a class="button stage-button" href="./github-copilot-advanced-badge.svg" download>Download badge ${icon('arrow')}</a>
       </figcaption>
     </figure>
     <div class="graduation-recap">

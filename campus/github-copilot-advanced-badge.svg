@@ -1,5 +1,5 @@
 <svg xmlns="http://www.w3.org/2000/svg" width="360" height="360" viewBox="0 0 360 360" role="img" aria-labelledby="badge-title">
-  <title id="badge-title">Contoso Copilot Crew — Workshop Complete</title>
+  <title id="badge-title">GitHub Copilot Advanced Workshop — Completion Badge</title>
   <defs>
     <path id="edge" d="M180 18 305 88v133l-21 34-104 79-104-79-21-34V88Z"/>
   </defs>
@@ -21,8 +21,8 @@
   </g>
   <path d="M55 170h250v61H55z" fill="#ffa400" stroke="#2a201b" stroke-width="4" stroke-linejoin="round"/>
   <g text-anchor="middle" font-family="Segoe UI, Arial, sans-serif" font-weight="700">
-    <text x="180" y="191" font-size="12" letter-spacing="3.2" fill="#2a201b">CONTOSO</text>
-    <text x="180" y="218" font-size="26" letter-spacing=".4" fill="#2a201b">COPILOT CREW</text>
+    <text x="180" y="191" font-size="15" letter-spacing="2.2" fill="#2a201b">GITHUB COPILOT</text>
+    <text x="180" y="218" font-size="27" letter-spacing="1.1" fill="#2a201b">ADVANCED</text>
     <text x="180" y="251" font-size="11" letter-spacing="1.6" fill="#ffe5ab">WORKSHOP COMPLETE</text>
   </g>
 </svg>
